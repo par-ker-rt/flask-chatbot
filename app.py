@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify
+from datetime import datetime
 
 app = Flask(__name__)
 
-ADMIN_API_KEY = "your-admin-key"
+ADMIN_API_KEY = "ef1dd21d04c7162581dc9de9ebdb629f"
 DAILY_LIMIT = 40
 user_message_count = {}
+
+def get_today():
+    return datetime.utcnow().strftime("%Y-%m-%d")
 
 @app.route("/")
 def index():
@@ -20,13 +24,18 @@ def chat():
     if not user or not message:
         return jsonify({"error": "Missing user or message"}), 400
 
-    if api_key == ADMIN_API_KEY:
-        pass
-    else:
-        count = user_message_count.get(user, 0)
-        if count >= DAILY_LIMIT:
-            return jsonify({"error": "Daily limit reached"}), 403
-        user_message_count[user] = count + 1
+    # Không giới hạn nếu là admin
+    if api_key != ADMIN_API_KEY:
+        today = get_today()
+        if user not in user_message_count:
+            user_message_count[user] = {}
+        if today not in user_message_count[user]:
+            user_message_count[user][today] = 0
+
+        if user_message_count[user][today] >= DAILY_LIMIT:
+            return jsonify({"error": "Daily message limit reached"}), 403
+
+        user_message_count[user][today] += 1
 
     return jsonify({"reply": f"You said: {message}"})
 
