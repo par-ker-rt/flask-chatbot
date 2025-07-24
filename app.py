@@ -4,17 +4,15 @@ import openai
 
 app = Flask(__name__)
 
-# Lấy biến môi trường từ Render
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "ef1dd21d04c7162581dc9de9ebdb629f")
 DAILY_LIMIT = int(os.getenv("LIMIT_PER_DAY", 40))
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Biến lưu số lượng tin nhắn mỗi user mỗi ngày
 user_message_count = {}
 
 @app.route("/")
 def index():
-    return render_template("index.html")  # Trả về giao diện chatbot
+    return render_template("index.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
