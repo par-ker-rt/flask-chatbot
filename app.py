@@ -31,11 +31,11 @@ def chat():
         user_message_count[user] = count + 1
 
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": message}]
-        )
-        reply = response.choices[0].message.content.strip()
+chat = openai.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": message}]
+)
+reply = chat.choices[0].message.content.strip()
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
