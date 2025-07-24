@@ -1,82 +1,31 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Chatbot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f4f8;
-            margin: 0;
-            padding: 20px;
-        }
-        #chatbox {
-            width: 100%;
-            max-width: 700px;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        .message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 12px;
-        }
-        .user {
-            background-color: #d0eaff;
-            text-align: right;
-        }
-        .bot {
-            background-color: #e0ffe0;
-            text-align: left;
-        }
-    </style>
+  <title>Chatbot</title>
 </head>
 <body>
-    <div id="chatbox">
-        <h2>🤖 Chat với AI</h2>
-        <div id="messages"></div>
-        <input type="text" id="userInput" placeholder="Nhập tin nhắn..." style="width: 70%;">
-        <button onclick="sendMessage()">Gửi</button>
-    </div>
+  <h1>Welcome to Chatbot 🤖</h1>
+  <p>Type your message below:</p>
+  <input type="text" id="message">
+  <button onclick="send()">Send</button>
+  <pre id="response"></pre>
 
-    <script>
-        const messagesDiv = document.getElementById("messages");
-
-        function addMessage(content, className) {
-            const msg = document.createElement("div");
-            msg.className = "message " + className;
-            msg.textContent = content;
-            messagesDiv.appendChild(msg);
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById("userInput");
-            const message = input.value;
-            input.value = "";
-            if (!message) return;
-
-            addMessage("Bạn: " + message, "user");
-
-            const response = await fetch("/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    user: "anonymous",
-                    message: message,
-                    api_key: ""
-                })
-            });
-
-            const data = await response.json();
-            if (data.reply) {
-                addMessage("Bot: " + data.reply, "bot");
-            } else {
-                addMessage("Lỗi: " + data.error, "bot");
-            }
-        }
-    </script>
+  <script>
+    async function send() {
+      const message = document.getElementById("message").value;
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user: "test",
+          message,
+          api_key: "" // ← nếu là admin, nhập API key ở đây
+        })
+      });
+      const data = await res.json();
+      document.getElementById("response").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
 </body>
 </html>
