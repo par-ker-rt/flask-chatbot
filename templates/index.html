@@ -1,4 +1,3 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,8 +5,8 @@
 </head>
 <body>
   <h1>Welcome to Chatbot 🤖</h1>
-  <p>Type your message below:</p>
-  <input type="text" id="message">
+  <p>Type your message:</p>
+  <input type="text" id="message" />
   <button onclick="send()">Send</button>
   <pre id="response"></pre>
 
@@ -18,9 +17,9 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user: "test",
-          message,
-          api_key: "" // ← nếu là admin, nhập API key ở đây
+          user: "guest",
+          message: message,
+          api_key: ""
         })
       });
       const data = await res.json();
