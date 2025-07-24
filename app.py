@@ -1,18 +1,20 @@
-from flask import Flask, request, jsonify
-from datetime import datetime
+from flask import Flask, request, jsonify, render_template
+import os
+import openai
 
 app = Flask(__name__)
 
-ADMIN_API_KEY = "ef1dd21d04c7162581dc9de9ebdb629f"
-DAILY_LIMIT = 40
-user_message_count = {}
+# Lấy biến môi trường từ Render
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "ef1dd21d04c7162581dc9de9ebdb629f")
+DAILY_LIMIT = int(os.getenv("LIMIT_PER_DAY", 40))
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def get_today():
-    return datetime.utcnow().strftime("%Y-%m-%d")
+# Biến lưu số lượng tin nhắn mỗi user mỗi ngày
+user_message_count = {}
 
 @app.route("/")
 def index():
-    return "Chatbot is running!"
+    return render_template("index.html")  # Trả về giao diện chatbot
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -24,20 +26,22 @@ def chat():
     if not user or not message:
         return jsonify({"error": "Missing user or message"}), 400
 
-    # Không giới hạn nếu là admin
     if api_key != ADMIN_API_KEY:
-        today = get_today()
-        if user not in user_message_count:
-            user_message_count[user] = {}
-        if today not in user_message_count[user]:
-            user_message_count[user][today] = 0
+        count = user_message_count.get(user, 0)
+        if count >= DAILY_LIMIT:
+            return jsonify({"error": "Daily limit reached"}), 403
+        user_message_count[user] = count + 1
 
-        if user_message_count[user][today] >= DAILY_LIMIT:
-            return jsonify({"error": "Daily message limit reached"}), 403
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": message}]
+        )
+        reply = response.choices[0].message.content.strip()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-        user_message_count[user][today] += 1
-
-    return jsonify({"reply": f"You said: {message}"})
+    return jsonify({"reply": reply})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
