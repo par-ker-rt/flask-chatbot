@@ -1,29 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+
+    .chat-container {
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+
+    .chat-box {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+    }
+
+    .message {
+      margin-bottom: 10px;
+    }
+
+    .user {
+      color: #333;
+      font-weight: bold;
+    }
+
+    .bot {
+      color: #007bff;
+      margin-left: 20px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to Chatbot 🤖</h1>
-  <p>Type your message:</p>
-  <input type="text" id="message" />
-  <button onclick="send()">Send</button>
-  <pre id="response"></pre>
+  <div class="chat-container">
+    <h2>🤖 GPT-like Chatbot</h2>
+    <div class="chat-box" id="chat-box">
+      <!-- Tin nhắn sẽ được thêm ở đây -->
+    </div>
+    <input type="text" id="message" placeholder="Enter your message...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
 
   <script>
-    async function send() {
-      const message = document.getElementById("message").value;
-      const res = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    async function sendMessage() {
+      const message = document.getElementById('message').value;
+      if (!message) return;
+
+      const chatBox = document.getElementById('chat-box');
+
+      // Hiển thị tin nhắn người dùng
+      chatBox.innerHTML += `<div class="message"><span class="user">You:</span> ${message}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Gửi yêu cầu tới Flask
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user: "guest",
           message: message,
-          api_key: ""
+          api_key: "ef1dd21d04c7162581dc9de9ebdb629f"
         })
       });
-      const data = await res.json();
-      document.getElementById("response").textContent = JSON.stringify(data, null, 2);
+
+      const data = await response.json();
+
+      // Hiển thị phản hồi
+      chatBox.innerHTML += `<div class="message"><span class="bot">Bot:</span> ${data.reply || data.error}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      document.getElementById('message').value = "";
     }
   </script>
 </body>
