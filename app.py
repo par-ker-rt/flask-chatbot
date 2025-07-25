@@ -32,7 +32,7 @@ def chat():
             return jsonify({"error": "Daily limit reached"}), 403
         user_message_count[user] = count + 1
 
-    # Sử dụng API chuẩn mới của openai >=1.0.0
+    # Sử dụng API chuẩn mới của openai >=0.28.1
     try:
         client = openai.OpenAI()
         response = client.chat.completions.create(
