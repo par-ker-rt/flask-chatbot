@@ -4,6 +4,7 @@ import openai
 
 app = Flask(__name__)
 
+# Lấy biến môi trường
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "ef1dd21d04c7162581dc9de9ebdb629f")
 DAILY_LIMIT = int(os.getenv("LIMIT_PER_DAY", 40))
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -31,11 +32,12 @@ def chat():
         user_message_count[user] = count + 1
 
     try:
-chat = openai.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[{"role": "user", "content": message}]
-)
-reply = chat.choices[0].message.content.strip()
+        # ✅ Sử dụng cú pháp OpenAI SDK >= 1.0.0
+        chat = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": message}]
+        )
+        reply = chat.choices[0].message.content.strip()
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
