@@ -1,100 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Chatbot</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f7f7f7;
-      margin: 0;
-      padding: 0;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot GPT-4.5</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#7c3aed',
+          },
+        },
+      },
     }
-
-    .chat-container {
-      max-width: 700px;
-      margin: 40px auto;
-      padding: 20px;
-      background: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 10px;
-    }
-
-    .chat-box {
-      height: 400px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-bottom: 15px;
-      background-color: #f9f9f9;
-    }
-
-    .message {
-      margin-bottom: 10px;
-    }
-
-    .user {
-      color: #333;
-      font-weight: bold;
-    }
-
-    .bot {
-      color: #007bff;
-      margin-left: 20px;
-    }
-
-    input[type="text"] {
-      width: 80%;
-      padding: 10px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 10px 15px;
-      font-size: 16px;
-    }
-  </style>
+  </script>
 </head>
-<body>
-  <div class="chat-container">
-    <h2>🤖 GPT-like Chatbot</h2>
-    <div class="chat-box" id="chat-box">
-      <!-- Tin nhắn sẽ được thêm ở đây -->
-    </div>
-    <input type="text" id="message" placeholder="Enter your message...">
-    <button onclick="sendMessage()">Send</button>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <div class="bg-white shadow-md py-4 px-6 text-xl font-semibold text-primary text-center">GPT-4.5 Chatbot</div>
+
+  <div class="flex-1 p-4 overflow-y-auto space-y-3" id="chat-box">
+    <!-- Messages appear here -->
   </div>
 
+  <form id="chat-form" class="flex items-center gap-2 p-4 border-t bg-white">
+    <input type="text" id="user-input" placeholder="Type your message..."
+           class="flex-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" required>
+    <button type="submit" class="bg-primary text-white px-4 py-2 rounded-xl hover:bg-purple-700">Send</button>
+  </form>
+
   <script>
-    async function sendMessage() {
-      const message = document.getElementById('message').value;
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('user-input');
+    const chatBox = document.getElementById('chat-box');
+
+    function addMessage(role, text) {
+      const container = document.createElement('div');
+      container.className = `p-3 rounded-xl max-w-xl whitespace-pre-line ${role === 'user' ? 'bg-purple-100 self-end text-right ml-auto' : 'bg-white border self-start'}`;
+      container.innerHTML = `<span class='block text-sm font-bold mb-1 ${role === 'user' ? 'text-purple-600' : 'text-gray-600'}'>${role === 'user' ? 'You' : 'Bot'}</span>${text}`;
+      chatBox.appendChild(container);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
       if (!message) return;
 
-      const chatBox = document.getElementById('chat-box');
+      addMessage('user', message);
+      input.value = '';
 
-      // Hiển thị tin nhắn người dùng
-      chatBox.innerHTML += `<div class="message"><span class="user">You:</span> ${message}</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({message})
+        });
+        const data = await res.json();
 
-      // Gửi yêu cầu tới Flask
-      const response = await fetch('/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user: "guest",
-          message: message,
-          api_key: "ef1dd21d04c7162581dc9de9ebdb629f"
-        })
-      });
-
-      const data = await response.json();
-
-      // Hiển thị phản hồi
-      chatBox.innerHTML += `<div class="message"><span class="bot">Bot:</span> ${data.reply || data.error}</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      document.getElementById('message').value = "";
-    }
+        if (data.error) {
+          addMessage('bot', `Error: ${data.error}`);
+        } else {
+          addMessage('bot', data.response);
+        }
+      } catch (err) {
+        addMessage('bot', 'Error: Unable to reach server.');
+      }
+    });
   </script>
 </body>
 </html>
